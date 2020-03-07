@@ -40,11 +40,14 @@ class TrafficLight : public TrafficObject
 {
 public:
     // constructor / desctructor
-    TrafficLight::TrafficLight();
+    TrafficLight();
 
     // getters / setters
+    TrafficLightPhase getCurrentPhase();
 
     // typical behaviour methods
+    void waitForGreen();
+    void simulate();
 
 private:
     // typical behaviour methods
@@ -55,7 +58,9 @@ private:
 
     std::condition_variable _condition;
     std::mutex _mutex;
-    int _currentPhase;
+    TrafficLightPhase _currentPhase;
+
+    void cycleThroughPhases();
 };
 
 #endif
