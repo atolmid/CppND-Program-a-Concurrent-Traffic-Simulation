@@ -2,6 +2,7 @@
 #include <random>
 #include "TrafficLight.h"
 
+
 /* Implementation of class "MessageQueue" */
 
 /*Task FP.3 : Define a class MessageQueue which has the public methods send and receive. 
@@ -15,6 +16,13 @@ T MessageQueue<T>::receive()
     // FP.5a : The method receive should use std::unique_lock<std::mutex> and _condition.wait() 
     // to wait for and receive new messages and pull them from the queue using move semantics. 
     // The received object should then be returned by the receive function. 
+    std::unique_lock<std::mutex> uniqueLock(_mutex);
+    _condition.wait(uniqueLock, [this](){return _queue.empty();});
+
+    T message = std::move(_queue.back());
+    _queue.pop_back();
+
+    return message;
 }
 
 template <typename T>
@@ -66,16 +74,16 @@ void TrafficLight::cycleThroughPhases()
     std::uniform_real_distribution<double> distribution(4.0, 6.0);
     double cycleDuration = distribution(randomEngine);
 
-    std::chrono::time_point<std::chrono::system_clock> originalTimePoint;
+    std::chrono::time_point<std::chrono::system_clock> latestTimePoint;
 
-    originalTimePoint = std::chrono::system_clock::now();
+    latestTimePoint = std::chrono::system_clock::now();
 
     while (true){
         //sleep between cycles
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         //check the elapsed time
-        long elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - originalTimePoint).count();
+        long elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - latestTimePoint).count();
 
         //if elapsed time is longer or equal to one cycle, traffic light changes state
         if (elapsedTime>=cycleDuration){
@@ -86,6 +94,15 @@ void TrafficLight::cycleThroughPhases()
                 _currentPhase = TrafficLightPhase::red;
             }
         }
+
+        TrafficLightPhase message = _currentPhase;
+
+        //std::future<void> _future = std::async(std::launch::async, &MessageQueue<TrafficLightPhase>::send, _messages, std::move(message));
+        //_future.wait();
+
+        latestTimePoint = std::chrono::system_clock::now();
+
+        cycleDuration = distribution(randomEngine);
     }
 
 }
