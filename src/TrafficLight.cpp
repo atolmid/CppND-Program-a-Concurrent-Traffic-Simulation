@@ -103,16 +103,17 @@ void TrafficLight::cycleThroughPhases()
             else{
                 _currentPhase = TrafficLightPhase::red;
             }
+
+            TrafficLightPhase message = _currentPhase;
+
+            std::future<void> _future = std::async(std::launch::async, &MessageQueue<TrafficLightPhase>::send, &_messages, std::move(message));
+            _future.wait();
+
+             latestTimePoint = std::chrono::system_clock::now();
+
+            cycleDuration = distribution(randomEngine);
         }
-
-        TrafficLightPhase message = _currentPhase;
-
-        std::future<void> _future = std::async(std::launch::async, &MessageQueue<TrafficLightPhase>::send, &_messages, std::move(message));
-        _future.wait();
-
-        latestTimePoint = std::chrono::system_clock::now();
-
-        cycleDuration = distribution(randomEngine);
+        
     }
 
 }
