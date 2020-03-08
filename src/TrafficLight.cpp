@@ -2,6 +2,7 @@
 #include <random>
 #include "TrafficLight.h"
 #include <future>
+#include <queue>
 
 
 /* Implementation of class "MessageQueue" */
@@ -52,7 +53,7 @@ void TrafficLight::waitForGreen()
     // Once it receives TrafficLightPhase::green, the method returns.
 
     while (true){
-        std::this_thread::sleep_for(std::chrono::microseconds(10));
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
         TrafficLightPhase currentPhase  = _messages.receive();
         if (currentPhase == TrafficLightPhase::green){
             return;
@@ -106,7 +107,7 @@ void TrafficLight::cycleThroughPhases()
 
         TrafficLightPhase message = _currentPhase;
 
-        std::future<void> _future = std::async(std::launch::async, &MessageQueue<TrafficLightPhase>::send, _messages, std::move(message));
+        std::future<void> _future = std::async(std::launch::async, &MessageQueue<TrafficLightPhase>::send, &_messages, std::move(message));
         _future.wait();
 
         latestTimePoint = std::chrono::system_clock::now();
